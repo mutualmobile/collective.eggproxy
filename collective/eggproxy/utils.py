@@ -205,14 +205,16 @@ class IndexProxy(object):
 
             filename, md5 = egg_info_for_url(dist.location)
             print >> html, (
-                '<a href="%s#%s" rel="download">%s</a><br />'
+                #'<a href="%s#%s" rel="download">%s</a><br />'
+                '<a href="%s#%s">%s</a><br />'
                 % (filename, md5, filename)
                 )
             if filename in local_eggs:
                 del local_eggs[filename]
         for egg in local_eggs:
             print >> html, (
-                '<a href="%s" rel="download">%s</a><br />'
+                #'<a href="%s" rel="download">%s</a><br />'
+                '<a href="%s">%s</a><br />'
                 % (egg, egg)
                 )
 
