@@ -222,6 +222,21 @@ class IndexProxy(object):
         html.close()
         del html
 
+    def remoteURIOfEggFor(self, package_name, eggname, eggs_dir=EGGS_DIR):
+        self._lookupPackage(package_name)
+        file_path = os.path.join(eggs_dir, package_name, eggname)
+        for dist in self.index[package_name]:
+            if getattr(dist, "module_path", None) is not None:
+                # this is a module installed in system (directory), we want
+                # to download a fresh package
+                continue
+
+            filename, md5 = egg_info_for_url(dist.location)
+            if filename == eggname:
+                return dist.location
+
+        raise ValueError, "Egg '%s' not found in index" % eggname
+
     def updateEggFor(self, package_name, eggname, eggs_dir=EGGS_DIR):
         """Download an egg for package_name
         """

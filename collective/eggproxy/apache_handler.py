@@ -19,6 +19,7 @@ from mod_python import apache
 
 from collective.eggproxy import eggs_index_proxy
 from collective.eggproxy.config import config
+from restkit import Resource
 
 EGGS_DIR = config.get("eggproxy", "eggs_directory")
 
@@ -95,6 +96,23 @@ def modpython_handler(req):
         return apache.OK
     else:
         eggname = uri_path[1]
+
+        # avoid downloading the whole version file when pip is just checking
+        # whether or not it exists by proxying to the file in the main index
+        if req.method == 'HEAD':
+            try:
+                remote_uri = eggs_index_proxy.remoteURIOfEggFor(package_name, eggname)
+            except ValueError:
+                return apache.HTTP_NOT_FOUND
+            remote_resource = Resource(remote_uri)
+            remote_headers = remote_resource.head()
+            for name, header in remote_headers.headerslist:
+                if name == 'Content-Type':
+                    req.content_type = header
+                    continue
+                req.headers_out[name] = header
+            return apache.OK
+
         try:
             eggs_index_proxy.updateEggFor(package_name, eggname)
         except ValueError:
